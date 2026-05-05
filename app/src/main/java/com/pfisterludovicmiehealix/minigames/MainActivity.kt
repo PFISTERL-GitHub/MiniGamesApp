@@ -45,3 +45,7 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
+
+// MainActivity .kt
+@Composable
+fun MiniGamesApp () { }
