@@ -11,10 +11,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 
+enum class GamePhase {
+    IDLE,       // en attente du demarrage
+    RUNNING,    // timer en cours
+    RESULT      // partie terminee, affichage du resultat
+}
+
 // Retourne un message selon l'ecart en millisecondes
 fun feedbackMessage(gap: Long): String {
     return when {
-        gap < 1   -> "SSSensationnel"
+        gap < 10   -> "SSSensationnel"
         gap < 100  -> "Excellent !"
         gap < 300  -> "Tres bien"
         gap < 600  -> "Pas mal"
@@ -25,9 +31,8 @@ fun feedbackMessage(gap: Long): String {
 
 @Composable
 fun ReactionScreen(onBackClick: () -> Unit) {
-    // --- Etats ---
-    var hasStarted by remember { mutableStateOf(false) }
-    var hasStopped by remember { mutableStateOf(false) }
+    // --- Etat unique de phase ---
+    var phase by remember { mutableStateOf(GamePhase.IDLE) }
 
     // --- Timer ---
     var elapsedTime by remember { mutableLongStateOf(0L) }
@@ -42,19 +47,18 @@ fun ReactionScreen(onBackClick: () -> Unit) {
 
     // --- Fonction de reinitialisation pour "Rejouer" ---
     fun resetGame() {
-        hasStarted = false
-        hasStopped = false
+        phase = GamePhase.IDLE
         elapsedTime = 0L
         gap = 0L
     }
 
     // --- Timer ---
-    LaunchedEffect(hasStarted) {
-        if (!hasStarted) return@LaunchedEffect
+    LaunchedEffect(phase) {
+        if (phase != GamePhase.RUNNING) return@LaunchedEffect
 
         var lastFrameTime = -1L
 
-        while (!hasStopped) {
+        while (phase == GamePhase.RUNNING) {
             withFrameMillis { frameTime ->
                 if (lastFrameTime < 0L) {
                     // Premier frame : on initialise sans incrementer
@@ -90,105 +94,104 @@ fun ReactionScreen(onBackClick: () -> Unit) {
         )
 
         // Zone centrale : jeu ou resultat
-        if (hasStopped) {
-            // --- Phase de resultat ---
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Valeur atteinte vs cible
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+        when (phase) {
+            GamePhase.IDLE, GamePhase.RUNNING -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Cible",
+                                text = "Valeur cible",
                                 style = MaterialTheme.typography.labelLarge
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "$targetValue ms",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Votre arret",
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                            Text(
-                                text = "$elapsedTime ms",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        HorizontalDivider()
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Ecart",
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                            Text(
-                                text = "$gap ms",
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.headlineSmall
                             )
                         }
                     }
-                }
 
-                // Message de feedback
-                Text(
-                    text = feedbackMessage(gap),
-                    fontSize = 32.sp,
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = "$elapsedTime ms",
+                        fontSize = 56.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
             }
 
-        } else {
-            // --- Phase de jeu ---
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                // Valeur cible
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Valeur cible",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "$targetValue ms",
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+            GamePhase.RESULT -> {
+                // --- Phase de jeu ---
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Valeur cible
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Cible",
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                Text(
+                                    text = "$targetValue ms",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Votre arret",
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                Text(
+                                    text = "$elapsedTime ms",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                            HorizontalDivider()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Ecart",
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                Text(
+                                    text = "$gap ms",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
                     }
-                }
 
-                // Timer
-                Text(
-                    text = "$elapsedTime ms",
-                    fontSize = 56.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+                    Text(
+                        text = feedbackMessage(gap),
+                        fontSize = 32.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 
@@ -198,26 +201,32 @@ fun ReactionScreen(onBackClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (hasStopped) {
-                Button(
-                    onClick = { resetGame() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Rejouer")
+            when (phase) {
+                GamePhase.IDLE -> {
+                    Button(
+                        onClick = { phase = GamePhase.RUNNING },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Demarrer")
+                    }
                 }
-            } else if (!hasStarted) {
-                Button(
-                    onClick = { hasStarted = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Demarrer")
+
+                GamePhase.RUNNING -> {
+                    Button(
+                        onClick = { phase = GamePhase.RESULT },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Stop !")
+                    }
                 }
-            } else {
-                Button(
-                    onClick = { hasStopped = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Stop !")
+
+                GamePhase.RESULT -> {
+                    Button(
+                        onClick = { resetGame() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Rejouer")
+                    }
                 }
             }
 
