@@ -20,6 +20,7 @@ enum class GamePhase {
 // Retourne un message selon l'ecart en millisecondes
 fun feedbackMessage(gap: Long): String {
     return when {
+        gap <=0    -> "debug: gap = 0"
         gap < 10   -> "SSSensationnel"
         gap < 100  -> "Excellent !"
         gap < 300  -> "Tres bien"
@@ -35,7 +36,8 @@ fun ReactionScreen(onBackClick: () -> Unit) {
     var phase by remember { mutableStateOf(GamePhase.IDLE) }
 
     // --- Timer ---
-    var elapsedTime by remember { mutableLongStateOf(0L) }
+    var elapsedTimeFloat by remember { mutableFloatStateOf(0f) }
+    val elapsedTime = elapsedTimeFloat.toLong()
 
     // --- Resultat ---
     var gap by remember { mutableLongStateOf(0L) }
@@ -48,7 +50,7 @@ fun ReactionScreen(onBackClick: () -> Unit) {
     // --- Fonction de reinitialisation pour "Rejouer" ---
     fun resetGame() {
         phase = GamePhase.IDLE
-        elapsedTime = 0L
+        elapsedTimeFloat = 0f
         gap = 0L
     }
 
@@ -64,19 +66,19 @@ fun ReactionScreen(onBackClick: () -> Unit) {
                     // Premier frame : on initialise sans incrementer
                     lastFrameTime = frameTime
                 } else {
-                    val delta = ((frameTime - lastFrameTime) * speed).toLong()
+                    val delta = ((frameTime - lastFrameTime) * speed)
                     lastFrameTime = frameTime
 
-                    elapsedTime = if (isIncrementing) {
-                        elapsedTime + delta
+                    elapsedTimeFloat = if (isIncrementing) {
+                        elapsedTimeFloat + delta
                     } else {
-                        elapsedTime - delta
+                        elapsedTimeFloat - delta
                     }
                 }
             }
         }
         // Calcul de l'ecart une fois le timer stoppe
-        gap = abs(elapsedTime - targetValue)
+        gap = abs(elapsedTimeFloat.toLong() - targetValue)
     }
 
     Column(
