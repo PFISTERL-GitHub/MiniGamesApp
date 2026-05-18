@@ -42,16 +42,30 @@ fun ReactionScreen(onBackClick: () -> Unit) {
     // --- Resultat ---
     var gap by remember { mutableLongStateOf(0L) }
 
-    // Parametres fixes
-    val targetValue = 5_000L
-    val speed = 1.0f
-    val isIncrementing = true
+    // --- Parametres aleatoires ---
+    var targetValue by remember { mutableLongStateOf(0L) }
+    var speed by remember { mutableFloatStateOf(1.0f) }
+    var isIncrementing by remember { mutableStateOf(true) }
+
+    // --- Generation des parametres ---
+    fun generateGameParams() {
+        targetValue = (1_000..10_000).random().toLong()
+        speed = (5..20).random() / 10f
+        isIncrementing = listOf(true, false).random()
+    }
+
 
     // --- Fonction de reinitialisation pour "Rejouer" ---
     fun resetGame() {
+        generateGameParams()
         phase = GamePhase.IDLE
-        elapsedTimeFloat = 0f
+        elapsedTimeFloat = if (isIncrementing) 0f else targetValue.toFloat()
         gap = 0L
+    }
+
+    LaunchedEffect(Unit) {
+        generateGameParams()
+        elapsedTimeFloat = if (isIncrementing) 0f else targetValue.toFloat()
     }
 
     // --- Timer ---
@@ -78,7 +92,11 @@ fun ReactionScreen(onBackClick: () -> Unit) {
             }
         }
         // Calcul de l'ecart une fois le timer stoppe
-        gap = abs(elapsedTimeFloat.toLong() - targetValue)
+        gap = if (isIncrementing) {
+            abs(elapsedTimeFloat.toLong() - targetValue)  // ecart avec la cible
+        } else {
+            abs(elapsedTimeFloat.toLong())                 // ecart avec 0
+        }
     }
 
     Column(
@@ -110,7 +128,7 @@ fun ReactionScreen(onBackClick: () -> Unit) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Valeur cible",
+                                text = if (isIncrementing) "Valeur cible" else "Valeur de depart",
                                 style = MaterialTheme.typography.labelLarge
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -130,7 +148,6 @@ fun ReactionScreen(onBackClick: () -> Unit) {
             }
 
             GamePhase.RESULT -> {
-                // --- Phase de jeu ---
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -150,7 +167,7 @@ fun ReactionScreen(onBackClick: () -> Unit) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "Cible",
+                                    text = if (isIncrementing) "Cible" else "Valeur de depart",
                                     style = MaterialTheme.typography.labelLarge
                                 )
                                 Text(
@@ -177,7 +194,7 @@ fun ReactionScreen(onBackClick: () -> Unit) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "Ecart",
+                                    text = if (isIncrementing) "Ecart avec la cible" else "Ecart avec 0",
                                     style = MaterialTheme.typography.labelLarge
                                 )
                                 Text(
