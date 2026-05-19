@@ -171,15 +171,14 @@ fun ReactionScreen(onBackClick: () -> Unit) {
                         ) {
                             Text(text = "Rejouer")
                         }
-
-                        Button(
-                            onClick = onBackClick,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = "Retour a l'accueil")
-                        }
                     }
                 }
+            }
+            Button(
+                onClick = onBackClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Retour a l'accueil")
             }
         }
     }
