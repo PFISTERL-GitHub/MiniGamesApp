@@ -1,14 +1,27 @@
 package com.pfisterludovicmiehealix.minigames.ui.home
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+// Représente un jeu disponible dans l'application
+data class Game(
+    val nom: String,        // Nom affiché à l'écran
+    val route: String       // Identifiant de navigation passé à onPlayClick
+)
+
+// Liste de tous les jeux de l'application
+// Pour ajouter un jeu : ajouter une entrée ici et le case correspondant dans MiniGamesApp
+val games = listOf(
+    Game(nom = "Jeu de Réaction", route = "reaction")
+)
+
 @Composable
-fun HomeScreen(onPlayClick: () -> Unit) {
+fun HomeScreen(onPlayClick: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -21,20 +34,17 @@ fun HomeScreen(onPlayClick: () -> Unit) {
             style = MaterialTheme.typography.displayMedium
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Testez vos reflexes",
-            style = MaterialTheme.typography.bodyLarge
-        )
-
         Spacer(modifier = Modifier.height(48.dp))
 
-        Button(
-            onClick = onPlayClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "Jouer")
+        games.forEach { game ->
+            Button(
+                onClick = { onPlayClick(game.route) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = game.nom)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }

@@ -21,16 +21,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MiniGamesApp() {
-    var isPlayingReaction by remember { mutableStateOf(false) }
+    var currentScreen by remember { mutableStateOf("home") }
 
-    if (isPlayingReaction) {
-        ReactionScreen(
-            onBackClick = { isPlayingReaction = false }
+    when (currentScreen) {
+        "reaction" -> ReactionScreen(
+            onBackClick = { currentScreen = "home" }
         )
-    } else {
-        HomeScreen(
-            onPlayClick = { isPlayingReaction = true }
+
+        else -> HomeScreen(
+            onPlayClick = { screen -> currentScreen = screen }
         )
     }
 }
-
