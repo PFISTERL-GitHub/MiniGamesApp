@@ -29,10 +29,12 @@ private data class GameParams(
 )
 
 private fun generateGameParams(): GameParams {
-    val target = Random.nextLong(1_000L, 10_000L)
+    val incre  = Random.nextBoolean()
+    val target = if (incre) Random.nextLong(1_000L, 10_000L)
+                 else       Random.nextLong(1_000L,  8_000L)
     val speed  = Random.nextFloat() * 1.5f + 0.5f
-    val incre    = Random.nextBoolean()
-    val start  = if (incre) Random.nextLong(0L, target) else Random.nextLong(target + 1L, target + 10_000L)
+    val start  = if (incre) Random.nextLong(0L, target)
+                 else       Random.nextLong(target + 500L, target + 2_000L)
     return GameParams(start, target, speed, incre)
 }
 
