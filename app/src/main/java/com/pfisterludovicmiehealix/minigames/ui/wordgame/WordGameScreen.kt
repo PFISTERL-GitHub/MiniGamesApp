@@ -28,20 +28,23 @@ fun WordGameScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.startGame() }
 
-    val phase by viewModel.phase.collectAsState()
-    val grid  by viewModel.grid.collectAsState()
-    val score by viewModel.score.collectAsState()
-    val timer by viewModel.timer.collectAsState()
+    val phase    by viewModel.phase.collectAsState()
+    val grid     by viewModel.grid.collectAsState()
+    val score    by viewModel.score.collectAsState()
+    val timer    by viewModel.timer.collectAsState()
+    val hintUsed by viewModel.hintUsed.collectAsState()
 
     when (phase) {
         WordGameViewModel.Phase.PLAYING -> PlayingScreen(
             timer       = timer,
             score       = score,
             grid        = grid,
+            hintUsed    = hintUsed,
             onErase     = viewModel::eraseLast,
             onCellClick = viewModel::selectCell,
             onValidate  = viewModel::validate,
             onPass      = viewModel::pass,
+            onHint      = viewModel::useHint,
             onBackClick = onBackClick
         )
         WordGameViewModel.Phase.GAME_OVER -> GameOverScreen(
@@ -57,10 +60,12 @@ private fun PlayingScreen(
     timer: Int,
     score: Int,
     grid: WordGameViewModel.WordGrid,
+    hintUsed: Boolean,
     onErase: () -> Unit,
     onCellClick: (Int) -> Unit,
     onValidate: () -> Unit,
     onPass: () -> Unit,
+    onHint: () -> Unit,
     onBackClick: () -> Unit
 ) {
     Column(
@@ -75,6 +80,7 @@ private fun PlayingScreen(
         GameHeader(title = "Mot Caché", timer = timer)
         ScoreRow(score = score)
         WordHintCard(letterCount = grid.word.length)
+        HintButton(hintUsed = hintUsed, onHint = onHint)
         InputZone(input = grid.input, onErase = onErase)
         LetterGrid(cells = grid.cells, isFull = grid.input.length >= grid.word.length, onCellClick = onCellClick)
         ActionButtons(onValidate = onValidate, onPass = onPass)
@@ -246,6 +252,23 @@ private fun ActionButtons(onValidate: () -> Unit, onPass: () -> Unit) {
         ) {
             Text("Passer", fontSize = 16.sp, color = AppGrey)
         }
+    }
+}
+
+@Composable
+private fun HintButton(hintUsed: Boolean, onHint: () -> Unit) {
+    OutlinedButton(
+        onClick = onHint,
+        enabled = !hintUsed,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(4.dp),
+        border = BorderStroke(1.dp, if (hintUsed) AppBorder else AppGreen)
+    ) {
+        Text(
+            text = if (hintUsed) "Indice utilisé" else "Indice (-1 pt)",
+            color = if (hintUsed) AppGrey else AppGreen,
+            fontSize = 14.sp
+        )
     }
 }
 
