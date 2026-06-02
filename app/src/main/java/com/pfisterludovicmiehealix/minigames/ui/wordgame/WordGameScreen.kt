@@ -26,11 +26,12 @@ fun WordGameScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.startGame() }
 
-    val phase    by viewModel.phase.collectAsState()
-    val grid     by viewModel.grid.collectAsState()
-    val score    by viewModel.score.collectAsState()
-    val timer    by viewModel.timer.collectAsState()
-    val hintUsed by viewModel.hintUsed.collectAsState()
+    val phase     by viewModel.phase.collectAsState()
+    val grid      by viewModel.grid.collectAsState()
+    val score     by viewModel.score.collectAsState()
+    val timer     by viewModel.timer.collectAsState()
+    val hintUsed  by viewModel.hintUsed.collectAsState()
+    val bestScore by viewModel.bestScore.collectAsState()
 
     when (phase) {
         WordGameViewModel.Phase.PLAYING -> PlayingScreen(
@@ -46,9 +47,10 @@ fun WordGameScreen(
             onBackClick = onBackClick
         )
         WordGameViewModel.Phase.GAME_OVER -> GameOverScreen(
-            score    = score,
-            onReplay = viewModel::reset,
-            onBack   = onBackClick
+            score     = score,
+            bestScore = bestScore,
+            onReplay  = viewModel::reset,
+            onBack    = onBackClick
         )
     }
 }
@@ -87,7 +89,7 @@ private fun PlayingScreen(
 }
 
 @Composable
-private fun GameOverScreen(score: Int, onReplay: () -> Unit, onBack: () -> Unit) {
+private fun GameOverScreen(score: Int, bestScore: Int, onReplay: () -> Unit, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -100,6 +102,9 @@ private fun GameOverScreen(score: Int, onReplay: () -> Unit, onBack: () -> Unit)
         Spacer(Modifier.height(16.dp))
         Text("Score final", color = AppGrey, fontSize = 16.sp)
         Text("$score", color = AppGreen, fontSize = 64.sp, fontWeight = FontWeight.Black)
+        if (bestScore > score) {
+            Text("Meilleur score : $bestScore", color = AppGrey, fontSize = 14.sp)
+        }
         Spacer(Modifier.height(32.dp))
         Button(
             onClick = onReplay,

@@ -46,6 +46,10 @@ class WordGameViewModel : ViewModel() {
     private val _hintUsed = MutableStateFlow(false)
     val hintUsed: StateFlow<Boolean> = _hintUsed.asStateFlow()
 
+    // _bestScore is mutable internally; bestScore is the read-only public view
+    private val _bestScore = MutableStateFlow(0)
+    val bestScore: StateFlow<Int> = _bestScore.asStateFlow()
+
     // _grid is mutable internally; grid is the read-only public view
     private val _grid = MutableStateFlow(buildGrid(wordList.random()))
     val grid: StateFlow<WordGrid> = _grid.asStateFlow()
@@ -122,6 +126,7 @@ class WordGameViewModel : ViewModel() {
                 delay(TIMER_TICK_MS)
                 _timer.value--
             }
+            _bestScore.value = maxOf(_bestScore.value, _score.value)
             _phase.value = Phase.GAME_OVER
         }
     }
