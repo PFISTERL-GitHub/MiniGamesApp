@@ -42,6 +42,10 @@ class WordGameViewModel : ViewModel() {
     private val _phase = MutableStateFlow(Phase.PLAYING)
     val phase: StateFlow<Phase> = _phase.asStateFlow()
 
+    // _hintUsed must be declared before _grid — buildGrid() resets it during initialization
+    private val _hintUsed = MutableStateFlow(false)
+    val hintUsed: StateFlow<Boolean> = _hintUsed.asStateFlow()
+
     // _grid is mutable internally; grid is the read-only public view
     private val _grid = MutableStateFlow(buildGrid(wordList.random()))
     val grid: StateFlow<WordGrid> = _grid.asStateFlow()
@@ -72,6 +76,15 @@ class WordGameViewModel : ViewModel() {
             cells = current.cells.toMutableList().also { it[index] = it[index].copy(isSelected = true) },
             selectedIndices = current.selectedIndices + index
         )
+    }
+
+    fun useHint() {
+        if (_hintUsed.value) return
+        _hintUsed.value = true
+        _score.value = maxOf(0, _score.value - 1)
+        val firstChar = _grid.value.word[0]
+        val cellIndex = _grid.value.cells.indexOfFirst { !it.isSelected && it.char == firstChar }
+        if (cellIndex != -1) selectCell(cellIndex)
     }
 
     fun eraseLast() {
@@ -114,6 +127,7 @@ class WordGameViewModel : ViewModel() {
     }
 
     private fun buildGrid(word: String): WordGrid {
+        _hintUsed.value = false
         val cells = (word.map { Cell(it) } + List(RANDOM_LETTER_COUNT) { Cell(('A'..'Z').random()) }).shuffled()
         return WordGrid(word = word, cells = cells, selectedIndices = emptyList())
     }
