@@ -21,50 +21,6 @@ import kotlin.math.abs
 import kotlin.random.Random
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
-private data class GameParams(
-    val startValue: Long,       // valeur de départ du timer (ms)
-    val targetValue: Long,      // valeur cible à atteindre (ms)
-    val speedFactor: Float,     // 0.5× à 2.0×
-    val isIncrementing: Boolean // true = croissant, false = décroissant
-)
-
-private fun generateGameParams(): GameParams {
-    val incre  = Random.nextBoolean()
-    val target = if (incre) Random.nextLong(1_000L, 10_000L)
-                 else       Random.nextLong(1_000L,  8_000L)
-    val speed  = Random.nextFloat() * 1.5f + 0.5f
-    val start  = if (incre) Random.nextLong(0L, target)
-                 else       Random.nextLong(target + 500L, target + 2_000L)
-    return GameParams(start, target, speed, incre)
-}
-
-enum class GamePhase {
-    IDLE,       // en attente du demarrage
-    RUNNING,    // timer en cours
-    RESULT      // partie terminee, affichage du resultat
-}
-
-private fun Long.formatMs(): String {
-    val a   = abs(this)
-    val min = a / 60_000
-    val sec = (a % 60_000) / 1_000
-    val ms  = a % 1_000
-    return if (min > 0) "%d:%02d.%03d".format(min, sec, ms)
-    else               "%d.%03d".format(sec, ms)
-}
-
-// Retourne un message selon l'ecart en millisecondes
-fun feedbackMessage(gap: Long): String {
-    return when {
-        gap < 10   -> "SSSensationnel"
-        gap < 100  -> "Excellent !"
-        gap < 300  -> "Tres bien"
-        gap < 600  -> "Pas mal"
-        gap < 1000 -> "Peut mieux faire"
-        else       -> "Mauvais"
-    }
-}
-
 @Composable
 fun ReactionScreen(onBackClick: () -> Unit) {
     var params by remember { mutableStateOf(generateGameParams()) }
