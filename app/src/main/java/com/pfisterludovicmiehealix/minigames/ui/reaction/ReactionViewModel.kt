@@ -26,6 +26,13 @@ enum class GamePhase {
     RESULT      // partie terminee, affichage du resultat
 }
 
+data class ReactionUiState(
+    val params: ReactionParams  = generateGameParams(),
+    val phase: GamePhase        = GamePhase.IDLE,
+    val timer: Long             = 0L,
+    val gap: Long               = 0L,
+)
+
 private fun generateGameParams(): ReactionParams {
     val incre  = Random.nextBoolean()
     val target = if (incre) Random.nextLong(1_000L, 10_000L)
@@ -36,7 +43,7 @@ private fun generateGameParams(): ReactionParams {
     return ReactionParams(start, target, speed, incre)
 }
 
-private fun Long.formatMs(): String {
+fun Long.formatMs(): String {
     val a   = abs(this)
     val min = a / 60_000
     val sec = (a % 60_000) / 1_000
@@ -62,7 +69,7 @@ fun feedbackMessage(gap: Long): String {
 class ReactionViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReactionUiState(
-        params = generateParams(),
+        params = generateGameParams(),
     ).let { it.copy(timer = it.params.startValue) })
     val uiState: StateFlow<ReactionUiState> = _uiState.asStateFlow()
 
@@ -97,7 +104,7 @@ class ReactionViewModel : ViewModel() {
 
     fun reset() { // retour a l'etat initial
         timerJob?.cancel()
-        val newParams = generateParams()
+        val newParams = generateGameParams()
         _uiState.update {
             ReactionUiState(params = newParams, timer = newParams.startValue)
         }

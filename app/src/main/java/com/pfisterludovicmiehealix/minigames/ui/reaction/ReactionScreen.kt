@@ -16,36 +16,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import kotlin.math.abs
-import kotlin.random.Random
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
 @Composable
-fun ReactionScreen(onBackClick: () -> Unit) {
-    var params by remember { mutableStateOf(generateGameParams()) }
-    var phase  by remember { mutableStateOf(GamePhase.IDLE) }
-    var timer  by remember { mutableLongStateOf(params.startValue) }
-    var gap    by remember { mutableLongStateOf(0L) }
-
-    LaunchedEffect(phase, params) {
-        if (phase == GamePhase.RUNNING) {
-            val tickMs = 16L
-            while (phase == GamePhase.RUNNING) {
-                delay(tickMs)
-                val delta = (tickMs * params.speedFactor).toLong()
-                timer = if (params.isIncrementing) timer + delta else timer - delta
-            }
-        }
-    }
-
-    // --- Fonction de reinitialisation pour "Rejouer" ---
-    fun resetGame() {
-        params  = generateGameParams()
-        timer = params.startValue
-        phase   = GamePhase.IDLE
-        gap = 0L
-    }
+fun ReactionScreen(
+    onBackClick: () -> Unit,
+    viewModel: ReactionViewModel = viewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -76,18 +55,21 @@ fun ReactionScreen(onBackClick: () -> Unit) {
                     .fillMaxWidth()
                     .border(1.dp, AppBorder, RoundedCornerShape(4.dp))
             ) {
-                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    InfoRow(label = "Cible",   value = params.targetValue.formatMs(), valueColor = AppBlueLight)
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    InfoRow(label = "Cible",   value = state.params.targetValue.formatMs(), valueColor = AppBlueLight)
                     HorizontalDivider(color = AppBorder)
                     InfoRow(
                         label = "Sens",
-                        value = if (params.isIncrementing) "▲  Croissant" else "▼  Décroissant",
-                        valueColor = if (params.isIncrementing) AppGreen else Color(0xFFFF5252)
+                        value = if (state.params.isIncrementing) "▲  Croissant" else "▼  Décroissant",
+                        valueColor = if (state.params.isIncrementing) AppGreen else Color(0xFFFF5252)
                     )
                     HorizontalDivider(color = AppBorder)
                     InfoRow(
                         label = "Vitesse",
-                        value = "×${"%.1f".format(params.speedFactor)}",
+                        value = "×${"%.1f".format(state.params.speedFactor)}",
                         valueColor = AppWhite
                     )
                 }
@@ -100,23 +82,23 @@ fun ReactionScreen(onBackClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text       = timer.formatMs(),
+                text       = state.timer.formatMs(),
                 fontSize   = 56.sp,
                 fontWeight = FontWeight.Black,
-                color      = if (phase == GamePhase.RUNNING) AppGreen else AppWhite,
+                color      = if (state.phase == GamePhase.RUNNING) AppGreen else AppWhite,
                 textAlign  = TextAlign.Center
             )
 
             // Résultat (visible uniquement en phase RESULT)
-            if (phase == GamePhase.RESULT) {
+            if (state.phase == GamePhase.RESULT) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text       = "Écart : ${gap.formatMs()}",
+                    text       = "Écart : ${state.gap.formatMs()}",
                     color      = AppGrey,
                     fontSize   = 16.sp
                 )
                 Text(
-                    text       = feedbackMessage(gap),
+                    text       = feedbackMessage(state.gap),
                     color      = AppWhite,
                     fontSize   = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -130,38 +112,25 @@ fun ReactionScreen(onBackClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            when (phase) {
+            when (state.phase) {
                 // Bouton circulaire Démarrer
-                GamePhase.IDLE -> {
-                    CircleActionButton(
-                        label   = "Démarrer",
-                        color   = AppBlue,
-                        onClick = {
-                            timer = params.startValue
-                            phase = GamePhase.RUNNING
-                        }
-                    )
-                }
+                GamePhase.IDLE -> CircleActionButton(
+                    label   = "Démarrer",
+                    color   = AppBlue,
+                    onClick = { viewModel.startGame() }
+                )
 
                 // Bouton circulaire Stop
-                GamePhase.RUNNING -> {
-                    CircleActionButton(
-                        label   = "Stop !",
-                        color   = Color(0xFFFF1744),
-                        onClick = {
-                            gap   = abs(timer - params.targetValue)
-                            phase = GamePhase.RESULT
-                        }
-                    )
-                }
+                GamePhase.RUNNING -> CircleActionButton(
+                    label   = "Stop !",
+                    color   = Color(0xFFFF1744),
+                    onClick = { viewModel.stopTimer() }
+                )
 
                 // Boutons Rejouer + Accueil
-                GamePhase.RESULT -> {
-                    Button(
-                        onClick  = { resetGame() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
+                GamePhase.RESULT -> { Button(
+                        onClick  = { viewModel.reset() },
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
                         shape  = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = AppBlue)
                     ) {
@@ -182,7 +151,7 @@ fun ReactionScreen(onBackClick: () -> Unit) {
     }
 }
 
-// ── Composants utilitaires ────────────────────────────────────────────────────
+// Composants utilitaires
 
 @Composable
 private fun CircleActionButton(label: String, color: Color, onClick: () -> Unit) {
