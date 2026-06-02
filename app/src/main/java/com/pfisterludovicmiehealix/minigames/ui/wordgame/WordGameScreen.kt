@@ -4,9 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,13 +70,11 @@ private fun PlayingScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 28.dp, vertical = 48.dp),
+            .padding(horizontal = 28.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        GameHeader(title = "Mot Caché", timer = timer)
-        ScoreRow(score = score)
+        GameHeader(title = "Mot Caché", timer = timer, score = score)
         WordHintCard(letterCount = grid.word.length)
         HintButton(hintUsed = hintUsed, onHint = onHint)
         InputZone(input = grid.input, onErase = onErase)
@@ -121,20 +117,16 @@ private fun GameOverScreen(score: Int, onReplay: () -> Unit, onBack: () -> Unit)
 }
 
 @Composable
-private fun GameHeader(title: String, timer: Int) {
+private fun GameHeader(title: String, timer: Int, score: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = title, color = AppWhite, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text(text = "Score : $score", color = AppGrey, fontSize = 16.sp)
         Text(text = "$timer", color = AppGreen, fontSize = 32.sp, fontWeight = FontWeight.Black)
     }
-}
-
-@Composable
-private fun ScoreRow(score: Int) {
-    Text(text = "Score : $score", color = AppGrey, fontSize = 16.sp)
 }
 
 @Composable
@@ -210,7 +202,8 @@ private fun LetterGrid(cells: List<WordGameViewModel.Cell>, isFull: Boolean, onC
                         enabled = !cell.isSelected && !isFull,
                         modifier = Modifier
                             .weight(1f)
-                            .aspectRatio(1f),
+                            .aspectRatio(1f)
+                            .heightIn(max = 80.dp),
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AppBlue,
