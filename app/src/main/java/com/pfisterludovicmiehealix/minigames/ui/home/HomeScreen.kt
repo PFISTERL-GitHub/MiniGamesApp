@@ -33,13 +33,13 @@ val games = listOf(
         name = "Jeu de Réaction",
         description = "Arrêtez le chrono au bon moment",
         icone = "⏱️",
-        route = "reaction"
+        route = Routes.REACTION
     ),
     Game(
         name = "Jeu de Mots",
         description = "Retrouvez le mot cache dans la grille",
         icone = "🔠",
-        route = "words"
+        route = Routes.WORD
     ),
 )
 
