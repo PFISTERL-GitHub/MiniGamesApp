@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pfisterludovicmiehealix.minigames.Routes
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
 // Représente un jeu disponible dans l'application
@@ -33,7 +34,13 @@ val games = listOf(
         description = "Arrêtez le chrono au bon moment",
         icone = "⏱️",
         route = "reaction"
-    )
+    ),
+    Game(
+        name = "Jeu de Mots",
+        description = "Retrouvez le mot cache dans la grille",
+        icone = "🔠",
+        route = "words"
+    ),
 )
 
 @Composable
