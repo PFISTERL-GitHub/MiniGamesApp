@@ -26,6 +26,11 @@ class WordGameViewModel : ViewModel() {
         val input: String get() = selectedIndices.map { cells[it].char }.joinToString("")
     }
 
+    companion object {
+        const val TIMER_DURATION_SECONDS = 60
+        const val RANDOM_LETTER_COUNT = 3
+    }
+
     private val wordList = listOf(
         "SOLEIL", "MAISON", "JARDIN", "CHEMIN", "BOUTON",
         "MIROIR", "PLANTE", "CARTON", "FUSEAU", "CITRON",
@@ -42,13 +47,13 @@ class WordGameViewModel : ViewModel() {
     private val _score = MutableStateFlow(0)
     val score: StateFlow<Int> = _score.asStateFlow()
 
-    private val _timer = MutableStateFlow(60)
+    private val _timer = MutableStateFlow(TIMER_DURATION_SECONDS)
     val timer: StateFlow<Int> = _timer.asStateFlow()
 
     private var timerJob: Job? = null
 
     fun startGame() {
-        _timer.value = 60
+        _timer.value = TIMER_DURATION_SECONDS
         _grid.value = buildGrid(wordList.random())
         launchTimer()
     }
@@ -84,7 +89,7 @@ class WordGameViewModel : ViewModel() {
     fun reset() {
         timerJob?.cancel()
         _score.value = 0
-        _timer.value = 60
+        _timer.value = TIMER_DURATION_SECONDS
         _phase.value = Phase.PLAYING
         _grid.value = buildGrid(wordList.random())
         launchTimer()
@@ -102,7 +107,7 @@ class WordGameViewModel : ViewModel() {
     }
 
     private fun buildGrid(word: String): WordGrid {
-        val cells = (word.map { Cell(it) } + List(3) { Cell(('A'..'Z').random()) }).shuffled()
+        val cells = (word.map { Cell(it) } + List(RANDOM_LETTER_COUNT) { Cell(('A'..'Z').random()) }).shuffled()
         return WordGrid(word = word, cells = cells, selectedIndices = emptyList())
     }
 }
