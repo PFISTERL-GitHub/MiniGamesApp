@@ -8,7 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +26,43 @@ fun WordGameScreen(
     onBackClick: () -> Unit,
     viewModel: WordGameViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) { viewModel.startGame() }
+
+    val phase by viewModel.phase.collectAsState()
+    val grid  by viewModel.grid.collectAsState()
+    val score by viewModel.score.collectAsState()
+    val timer by viewModel.timer.collectAsState()
+
+    when (phase) {
+        WordGameViewModel.Phase.PLAYING -> PlayingScreen(
+            timer       = timer,
+            score       = score,
+            grid        = grid,
+            onErase     = viewModel::eraseLast,
+            onCellClick = viewModel::selectCell,
+            onValidate  = viewModel::validate,
+            onPass      = viewModel::pass,
+            onBackClick = onBackClick
+        )
+        WordGameViewModel.Phase.GAME_OVER -> GameOverScreen(
+            score    = score,
+            onReplay = viewModel::reset,
+            onBack   = onBackClick
+        )
+    }
+}
+
+@Composable
+private fun PlayingScreen(
+    timer: Int,
+    score: Int,
+    grid: WordGameViewModel.WordGrid,
+    onErase: () -> Unit,
+    onCellClick: (Int) -> Unit,
+    onValidate: () -> Unit,
+    onPass: () -> Unit,
+    onBackClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,13 +72,43 @@ fun WordGameScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        GameHeader(title = "Mot Caché", timer = 60)
-        ScoreRow(score = 0)
-        WordHintCard(letterCount = 6)
-        InputZone(input = "", onErase = {})
-        LetterGrid(cells = listOf('S', 'K', 'O', 'L', 'E', 'Z', 'I', 'L', 'M'), onCellClick = {})
-        ActionButtons(onValidate = {}, onPass = {})
+        GameHeader(title = "Mot Caché", timer = timer)
+        ScoreRow(score = score)
+        WordHintCard(letterCount = grid.word.length)
+        InputZone(input = grid.input, onErase = onErase)
+        LetterGrid(cells = grid.cells, isFull = grid.input.length >= grid.word.length, onCellClick = onCellClick)
+        ActionButtons(onValidate = onValidate, onPass = onPass)
         TextButton(onClick = onBackClick) {
+            Text("Retour à l'accueil", color = AppGrey, fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+private fun GameOverScreen(score: Int, onReplay: () -> Unit, onBack: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 28.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Partie terminée", color = AppWhite, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(16.dp))
+        Text("Score final", color = AppGrey, fontSize = 16.sp)
+        Text("$score", color = AppGreen, fontSize = 64.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.height(32.dp))
+        Button(
+            onClick = onReplay,
+            modifier = Modifier.fillMaxWidth().height(54.dp),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AppBlue)
+        ) {
+            Text("Rejouer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onBack) {
             Text("Retour à l'accueil", color = AppGrey, fontSize = 14.sp)
         }
     }
@@ -119,7 +186,7 @@ private fun InputZone(input: String, onErase: () -> Unit) {
 }
 
 @Composable
-private fun LetterGrid(cells: List<Char>, onCellClick: (Int) -> Unit) {
+private fun LetterGrid(cells: List<WordGameViewModel.Cell>, isFull: Boolean, onCellClick: (Int) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -129,16 +196,27 @@ private fun LetterGrid(cells: List<Char>, onCellClick: (Int) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                rowCells.forEachIndexed { colIndex, letter ->
+                rowCells.forEachIndexed { colIndex, cell ->
+                    val index = rowIndex * 3 + colIndex
                     Button(
-                        onClick = { onCellClick(rowIndex * 3 + colIndex) },
+                        onClick = { onCellClick(index) },
+                        // Disable when already selected OR when input is full
+                        enabled = !cell.isSelected && !isFull,
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f),
                         shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppBlue)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppBlue,
+                            disabledContainerColor = AppGrey.copy(alpha = 0.3f)
+                        )
                     ) {
-                        Text(text = letter.toString(), color = AppWhite, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = cell.char.toString(),
+                            color = AppWhite,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
