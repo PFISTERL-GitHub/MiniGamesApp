@@ -29,6 +29,7 @@ class WordGameViewModel : ViewModel() {
     companion object {
         const val TIMER_DURATION_SECONDS = 60
         const val RANDOM_LETTER_COUNT = 3
+        const val TIMER_TICK_MS = 1000L
     }
 
     private val wordList = listOf(
@@ -37,16 +38,20 @@ class WordGameViewModel : ViewModel() {
         "VIOLON", "RAPIDE", "BLOQUE", "MOUTON", "GATEAU"
     )
 
+    // _phase is mutable internally; phase is the read-only public view
     private val _phase = MutableStateFlow(Phase.PLAYING)
     val phase: StateFlow<Phase> = _phase.asStateFlow()
 
+    // _grid is mutable internally; grid is the read-only public view
     private val _grid = MutableStateFlow(buildGrid(wordList.random()))
     val grid: StateFlow<WordGrid> = _grid.asStateFlow()
 
     // TP-3: move score persistence to ScoreRepository
+    // _score is mutable internally; score is the read-only public view
     private val _score = MutableStateFlow(0)
     val score: StateFlow<Int> = _score.asStateFlow()
 
+    // _timer is mutable internally; timer is the read-only public view
     private val _timer = MutableStateFlow(TIMER_DURATION_SECONDS)
     val timer: StateFlow<Int> = _timer.asStateFlow()
 
@@ -99,7 +104,7 @@ class WordGameViewModel : ViewModel() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (_timer.value > 0) {
-                delay(1000)
+                delay(TIMER_TICK_MS)
                 _timer.value--
             }
             _phase.value = Phase.GAME_OVER
