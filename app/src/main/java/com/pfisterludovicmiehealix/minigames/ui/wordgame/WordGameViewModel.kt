@@ -66,6 +66,8 @@ class WordGameViewModel : ViewModel() {
     fun selectCell(index: Int) {
         val current = _grid.value
         if (current.cells[index].isSelected) return
+        // Prevent selecting beyond word length — extra letters would silently break validation
+        if (current.selectedIndices.size >= current.word.length) return
         _grid.value = current.copy(
             cells = current.cells.toMutableList().also { it[index] = it[index].copy(isSelected = true) },
             selectedIndices = current.selectedIndices + index
