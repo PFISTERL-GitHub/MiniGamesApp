@@ -275,6 +275,6 @@ private fun HintButton(hintUsed: Boolean, onHint: () -> Unit) {
 @Composable
 private fun WordGameScreenPreview() {
     MiniGamesAppTheme {
-        WordGameScreen(onBackClick = {})
+        WordGameScreen(playerName = "Preview", onBackClick = {})
     }
 }

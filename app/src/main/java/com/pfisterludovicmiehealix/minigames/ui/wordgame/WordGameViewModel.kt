@@ -61,7 +61,6 @@ class WordGameViewModel(application: Application) : AndroidViewModel(application
     private val _grid = MutableStateFlow(buildGrid(wordList.random()))
     val grid: StateFlow<WordGrid> = _grid.asStateFlow()
 
-    // TP-3: move score persistence to ScoreRepository
     // _score is mutable internally; score is the read-only public view
     private val _score = MutableStateFlow(0)
     val score: StateFlow<Int> = _score.asStateFlow()
