@@ -1,7 +1,11 @@
 package com.pfisterludovicmiehealix.minigames.ui.reaction
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.pfisterludovicmiehealix.minigames.data.AppDatabase
+import com.pfisterludovicmiehealix.minigames.data.Score
+import com.pfisterludovicmiehealix.minigames.data.ScoreRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,18 +17,15 @@ import kotlin.math.abs
 import kotlin.random.Random
 
 // MODEL
+
 data class ReactionParams(
-    val startValue: Long,       // valeur de départ du timer (ms)
-    val targetValue: Long,      // valeur cible à atteindre (ms)
-    val speedFactor: Float,     // 0.5× à 2.0×
-    val isIncrementing: Boolean // true = croissant, false = décroissant
+    val startValue: Long,
+    val targetValue: Long,
+    val speedFactor: Float,
+    val isIncrementing: Boolean
 )
 
-enum class GamePhase {
-    IDLE,       // en attente du demarrage
-    RUNNING,    // timer en cours
-    RESULT      // partie terminee, affichage du resultat
-}
+enum class GamePhase { IDLE, RUNNING, RESULT }
 
 data class ReactionUiState(
     val params: ReactionParams  = generateGameParams(),
@@ -36,10 +37,10 @@ data class ReactionUiState(
 private fun generateGameParams(): ReactionParams {
     val incre  = Random.nextBoolean()
     val target = if (incre) Random.nextLong(1_000L, 10_000L)
-    else       Random.nextLong(1_000L,  8_000L)
+                 else       Random.nextLong(1_000L,  8_000L)
     val speed  = Random.nextFloat() * 1.5f + 0.5f
     val start  = if (incre) Random.nextLong(0L, target)
-    else       Random.nextLong(target + 500L, target + 2_000L)
+                 else       Random.nextLong(target + 500L, target + 2_000L)
     return ReactionParams(start, target, speed, incre)
 }
 
@@ -52,7 +53,6 @@ fun Long.formatMs(): String {
     else                "%d.%03d".format(sec, ms)
 }
 
-// Retourne un message selon l'ecart en millisecondes
 fun feedbackMessage(gap: Long): String {
     return when {
         gap < 10   -> "SSSensationnel"
@@ -66,7 +66,10 @@ fun feedbackMessage(gap: Long): String {
 
 // VIEWMODEL
 
-class ReactionViewModel : ViewModel() {
+class ReactionViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val repository = ScoreRepository(AppDatabase.getDatabase(application).scoreDao())
+    private var playerName = ""
 
     private val _uiState = MutableStateFlow(ReactionUiState(
         params = generateGameParams(),
@@ -75,7 +78,8 @@ class ReactionViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun startGame() { // genere une partie et lance le timer
+    fun startGame(playerName: String) {
+        this.playerName = playerName
         _uiState.update { it.copy(phase = GamePhase.RUNNING, timer = it.params.startValue) }
         timerJob = viewModelScope.launch {
             val tickMs = 16L
@@ -85,28 +89,38 @@ class ReactionViewModel : ViewModel() {
                 _uiState.update { state ->
                     state.copy(
                         timer = if (state.params.isIncrementing) state.timer + delta
-                        else                             state.timer - delta
+                        else                                     state.timer - delta
                     )
                 }
             }
         }
     }
 
-    fun stopTimer() { // stoppe et calcule l'ecart
+    fun stopTimer() {
         timerJob?.cancel()
         _uiState.update { state ->
-            state.copy(
-                phase = GamePhase.RESULT,
-                gap   = abs(state.timer - state.params.targetValue)
-            )
+            state.copy(phase = GamePhase.RESULT, gap = abs(state.timer - state.params.targetValue))
         }
+        saveScore()
     }
 
-    fun reset() { // retour a l'etat initial
+    fun reset() {
         timerJob?.cancel()
         val newParams = generateGameParams()
         _uiState.update {
             ReactionUiState(params = newParams, timer = newParams.startValue)
+        }
+    }
+
+    private fun saveScore() {
+        viewModelScope.launch {
+            repository.insertScore(
+                Score(
+                    playerName = playerName,
+                    gameName   = "Reaction",
+                    score      = maxOf(0, 1000 - _uiState.value.gap.toInt())
+                )
+            )
         }
     }
 }
