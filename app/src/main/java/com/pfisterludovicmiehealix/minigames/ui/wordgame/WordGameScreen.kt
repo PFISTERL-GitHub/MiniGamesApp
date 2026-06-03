@@ -21,10 +21,11 @@ import com.pfisterludovicmiehealix.minigames.ui.theme.MiniGamesAppTheme
 
 @Composable
 fun WordGameScreen(
+    playerName: String,
     onBackClick: () -> Unit,
     viewModel: WordGameViewModel = viewModel()
 ) {
-    LaunchedEffect(Unit) { viewModel.startGame() }
+    LaunchedEffect(Unit) { viewModel.startGame(playerName) }
 
     val phase     by viewModel.phase.collectAsState()
     val grid      by viewModel.grid.collectAsState()

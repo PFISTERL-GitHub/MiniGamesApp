@@ -1,7 +1,11 @@
 package com.pfisterludovicmiehealix.minigames.ui.wordgame
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.pfisterludovicmiehealix.minigames.data.AppDatabase
+import com.pfisterludovicmiehealix.minigames.data.Score
+import com.pfisterludovicmiehealix.minigames.data.ScoreRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class WordGameViewModel : ViewModel() {
+class WordGameViewModel(application: Application) : AndroidViewModel(application) {
 
     enum class Phase { PLAYING, GAME_OVER }
 
@@ -38,6 +42,9 @@ class WordGameViewModel : ViewModel() {
         "VIOLON", "RAPIDE", "BLOQUE", "MOUTON", "GATEAU"
     )
 
+    private val repository = ScoreRepository(AppDatabase.getDatabase(application).scoreDao())
+    private var playerName = ""
+
     // _phase is mutable internally; phase is the read-only public view
     private val _phase = MutableStateFlow(Phase.PLAYING)
     val phase: StateFlow<Phase> = _phase.asStateFlow()
@@ -65,7 +72,8 @@ class WordGameViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun startGame() {
+    fun startGame(playerName: String) {
+        this.playerName = playerName
         _timer.value = TIMER_DURATION_SECONDS
         _grid.value = buildGrid(wordList.random())
         launchTimer()
@@ -127,7 +135,16 @@ class WordGameViewModel : ViewModel() {
                 _timer.value--
             }
             _bestScore.value = maxOf(_bestScore.value, _score.value)
+            saveScore()
             _phase.value = Phase.GAME_OVER
+        }
+    }
+
+    private fun saveScore() {
+        viewModelScope.launch {
+            repository.insertScore(
+                Score(playerName = playerName, gameName = "Mot Caché", score = _score.value)
+            )
         }
     }
 
