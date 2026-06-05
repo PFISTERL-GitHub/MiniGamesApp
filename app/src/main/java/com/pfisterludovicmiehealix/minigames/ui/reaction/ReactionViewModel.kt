@@ -12,19 +12,14 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.random.Random
 
-// MODEL
 data class ReactionParams(
-    val startValue: Long,       // valeur de départ du timer (ms)
-    val targetValue: Long,      // valeur cible à atteindre (ms)
-    val speedFactor: Float,     // 0.5× à 2.0×
-    val isIncrementing: Boolean // true = croissant, false = décroissant
+    val startValue: Long,
+    val targetValue: Long,
+    val speedFactor: Float,
+    val isIncrementing: Boolean
 )
 
-enum class GamePhase {
-    IDLE,       // en attente du demarrage
-    RUNNING,    // timer en cours
-    RESULT      // partie terminee, affichage du resultat
-}
+enum class GamePhase { IDLE, RUNNING, RESULT }
 
 data class ReactionUiState(
     val params: ReactionParams  = generateGameParams(),
@@ -52,7 +47,6 @@ fun Long.formatMs(): String {
     else                "%d.%03d".format(sec, ms)
 }
 
-// Retourne un message selon l'ecart en millisecondes
 fun feedbackMessage(gap: Long): String {
     return when {
         gap < 10   -> "SSSensationnel"
@@ -64,8 +58,6 @@ fun feedbackMessage(gap: Long): String {
     }
 }
 
-// VIEWMODEL
-
 class ReactionViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReactionUiState(
@@ -75,7 +67,7 @@ class ReactionViewModel : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun startGame() { // genere une partie et lance le timer
+    fun startGame() {
         _uiState.update { it.copy(phase = GamePhase.RUNNING, timer = it.params.startValue) }
         timerJob = viewModelScope.launch {
             val tickMs = 16L
@@ -92,7 +84,7 @@ class ReactionViewModel : ViewModel() {
         }
     }
 
-    fun stopTimer() { // stoppe et calcule l'ecart
+    fun stopTimer() {
         timerJob?.cancel()
         _uiState.update { state ->
             state.copy(
@@ -102,7 +94,7 @@ class ReactionViewModel : ViewModel() {
         }
     }
 
-    fun reset() { // retour a l'etat initial
+    fun reset() {
         timerJob?.cancel()
         val newParams = generateGameParams()
         _uiState.update {

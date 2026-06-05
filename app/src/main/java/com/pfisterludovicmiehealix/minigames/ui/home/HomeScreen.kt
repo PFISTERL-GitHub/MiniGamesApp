@@ -18,16 +18,13 @@ import androidx.compose.ui.unit.sp
 import com.pfisterludovicmiehealix.minigames.Routes
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
-// Représente un jeu disponible dans l'application
 data class Game(
-    val name: String,        // Nom affiché à l'écran
-    val description: String, // Message explicatif
-    val icone: String,       // emoji utilisé dans la boîte carrée
-    val route: String        // Identifiant de navigation passé à onPlayClick
+    val name: String,
+    val description: String,
+    val icone: String,
+    val route: String
 )
 
-// Liste de tous les jeux de l'application
-// Pour ajouter un jeu : ajouter une entrée ici et le case correspondant dans MiniGamesApp
 val games = listOf(
     Game(
         name = "Jeu de Réaction",
@@ -60,7 +57,6 @@ fun HomeScreen(onPlayClick: (String) -> Unit) {
             fontWeight = FontWeight.Bold
         )
 
-        //Spacer(modifier = Modifier.height(48.dp))
         Text(
             text  = "Choisissez un jeu",
             fontSize = 15.sp,
@@ -88,7 +84,6 @@ private fun GameCard(game: Game, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Petite boîte carrée avec l'icône
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -100,7 +95,6 @@ private fun GameCard(game: Game, onClick: () -> Unit) {
             Text(text = game.icone, fontSize = 24.sp)
         }
 
-        // Nom + description
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text       = game.name,
@@ -115,7 +109,6 @@ private fun GameCard(game: Game, onClick: () -> Unit) {
             )
         }
 
-        // Flèche verte
         Text(
             text     = "→",
             color    = AppGreen,

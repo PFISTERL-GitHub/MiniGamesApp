@@ -38,7 +38,6 @@ class WordGameViewModel : ViewModel() {
         "VIOLON", "RAPIDE", "BLOQUE", "MOUTON", "GATEAU"
     )
 
-    // _phase is mutable internally; phase is the read-only public view
     private val _phase = MutableStateFlow(Phase.PLAYING)
     val phase: StateFlow<Phase> = _phase.asStateFlow()
 
@@ -46,20 +45,15 @@ class WordGameViewModel : ViewModel() {
     private val _hintUsed = MutableStateFlow(false)
     val hintUsed: StateFlow<Boolean> = _hintUsed.asStateFlow()
 
-    // _bestScore is mutable internally; bestScore is the read-only public view
     private val _bestScore = MutableStateFlow(0)
     val bestScore: StateFlow<Int> = _bestScore.asStateFlow()
 
-    // _grid is mutable internally; grid is the read-only public view
     private val _grid = MutableStateFlow(buildGrid(wordList.random()))
     val grid: StateFlow<WordGrid> = _grid.asStateFlow()
 
-    // TP-3: move score persistence to ScoreRepository
-    // _score is mutable internally; score is the read-only public view
     private val _score = MutableStateFlow(0)
     val score: StateFlow<Int> = _score.asStateFlow()
 
-    // _timer is mutable internally; timer is the read-only public view
     private val _timer = MutableStateFlow(TIMER_DURATION_SECONDS)
     val timer: StateFlow<Int> = _timer.asStateFlow()
 
