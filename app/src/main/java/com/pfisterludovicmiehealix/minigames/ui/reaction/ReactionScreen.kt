@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pfisterludovicmiehealix.minigames.GameName
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
 @Composable
@@ -41,7 +42,7 @@ fun ReactionScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text       = "Jeu de Réaction",
+                text       = GameName.REACTION,
                 color      = AppWhite,
                 fontSize   = 22.sp,
                 fontWeight = FontWeight.Bold

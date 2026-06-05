@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pfisterludovicmiehealix.minigames.GameName
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 import com.pfisterludovicmiehealix.minigames.ui.theme.MiniGamesAppTheme
 
@@ -76,7 +77,7 @@ private fun PlayingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        GameHeader(title = "Mot Caché", timer = timer, score = score)
+        GameHeader(title = GameName.WORD, timer = timer, score = score)
         WordHintCard(letterCount = grid.word.length)
         HintButton(hintUsed = hintUsed, onHint = onHint)
         InputZone(input = grid.input, onErase = onErase)
