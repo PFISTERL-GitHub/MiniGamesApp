@@ -26,7 +26,6 @@ class WordGameViewModel : ViewModel() {
     private val _phase = MutableStateFlow(WordGamePhase.PLAYING)
     val phase: StateFlow<WordGamePhase> = _phase.asStateFlow()
 
-    // _hintUsed must be declared before _grid — buildGrid() resets it during initialization
     private val _hintUsed = MutableStateFlow(false)
     val hintUsed: StateFlow<Boolean> = _hintUsed.asStateFlow()
 
@@ -45,6 +44,7 @@ class WordGameViewModel : ViewModel() {
     private var timerJob: Job? = null
 
     fun startGame() {
+        _hintUsed.value = false
         _timer.value = TIMER_DURATION_SECONDS
         _grid.value = buildGrid(wordList.random())
         launchTimer()
@@ -82,15 +82,18 @@ class WordGameViewModel : ViewModel() {
 
     fun validate() {
         if (_grid.value.input == _grid.value.word) _score.value++
+        _hintUsed.value = false
         _grid.value = buildGrid(wordList.random())
     }
 
     fun pass() {
+        _hintUsed.value = false
         _grid.value = buildGrid(wordList.random())
     }
 
     fun reset() {
         timerJob?.cancel()
+        _hintUsed.value = false
         _score.value = 0
         _timer.value = TIMER_DURATION_SECONDS
         _phase.value = WordGamePhase.PLAYING
@@ -111,7 +114,6 @@ class WordGameViewModel : ViewModel() {
     }
 
     private fun buildGrid(word: String): WordGrid {
-        _hintUsed.value = false
         val cells = (word.map { Cell(it) } + List(RANDOM_LETTER_COUNT) { Cell(('A'..'Z').random()) }).shuffled()
         return WordGrid(word = word, cells = cells, selectedIndices = emptyList())
     }
