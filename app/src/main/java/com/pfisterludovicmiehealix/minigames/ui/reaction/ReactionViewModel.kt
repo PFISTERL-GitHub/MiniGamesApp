@@ -13,9 +13,7 @@ import kotlin.math.abs
 
 class ReactionViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(
-        generateGameParams().let { p -> ReactionUiState(params = p, timer = p.startValue) }
-    )
+    private val _uiState = MutableStateFlow(ReactionUiState())
     val uiState: StateFlow<ReactionUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
@@ -49,9 +47,6 @@ class ReactionViewModel : ViewModel() {
 
     fun reset() {
         timerJob?.cancel()
-        val newParams = generateGameParams()
-        _uiState.update {
-            ReactionUiState(params = newParams, timer = newParams.startValue)
-        }
+        _uiState.update { ReactionUiState(params = generateGameParams()) }
     }
 }

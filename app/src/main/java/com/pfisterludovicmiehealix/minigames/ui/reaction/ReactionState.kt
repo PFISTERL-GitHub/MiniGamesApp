@@ -15,8 +15,8 @@ enum class GamePhase { IDLE, RUNNING, RESULT }
 data class ReactionUiState(
     val params: ReactionParams = generateGameParams(),
     val phase: GamePhase       = GamePhase.IDLE,
-    val timer: Long            = 0L,
-    val gap: Long              = 0L,
+    val timer: Long            = params.startValue,
+    val gap: Long?             = null,
 )
 
 internal fun generateGameParams(): ReactionParams {

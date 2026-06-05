@@ -94,12 +94,12 @@ fun ReactionScreen(
             if (state.phase == GamePhase.RESULT) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text       = "Écart : ${state.gap.formatMs()}",
+                    text       = "Écart : ${state.gap!!.formatMs()}",
                     color      = AppGrey,
                     fontSize   = 16.sp
                 )
                 Text(
-                    text       = feedbackMessage(state.gap),
+                    text       = feedbackMessage(state.gap!!),
                     color      = AppWhite,
                     fontSize   = 20.sp,
                     fontWeight = FontWeight.Bold,
