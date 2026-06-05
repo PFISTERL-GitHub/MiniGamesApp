@@ -34,7 +34,7 @@ fun WordGameScreen(
     val bestScore by viewModel.bestScore.collectAsState()
 
     when (phase) {
-        WordGameViewModel.Phase.PLAYING -> PlayingScreen(
+        WordGamePhase.PLAYING -> PlayingScreen(
             timer       = timer,
             score       = score,
             grid        = grid,
@@ -46,7 +46,7 @@ fun WordGameScreen(
             onHint      = viewModel::useHint,
             onBackClick = onBackClick
         )
-        WordGameViewModel.Phase.GAME_OVER -> GameOverScreen(
+        WordGamePhase.GAME_OVER -> GameOverScreen(
             score     = score,
             bestScore = bestScore,
             onReplay  = viewModel::reset,
@@ -59,7 +59,7 @@ fun WordGameScreen(
 private fun PlayingScreen(
     timer: Int,
     score: Int,
-    grid: WordGameViewModel.WordGrid,
+    grid: WordGrid,
     hintUsed: Boolean,
     onErase: () -> Unit,
     onCellClick: (Int) -> Unit,
@@ -189,7 +189,7 @@ private fun InputZone(input: String, onErase: () -> Unit) {
 }
 
 @Composable
-private fun LetterGrid(cells: List<WordGameViewModel.Cell>, isFull: Boolean, onCellClick: (Int) -> Unit) {
+private fun LetterGrid(cells: List<Cell>, isFull: Boolean, onCellClick: (Int) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)

@@ -11,21 +11,6 @@ import kotlinx.coroutines.launch
 
 class WordGameViewModel : ViewModel() {
 
-    enum class Phase { PLAYING, GAME_OVER }
-
-    data class Cell(
-        val char: Char,
-        val isSelected: Boolean = false
-    )
-
-    data class WordGrid(
-        val word: String,
-        val cells: List<Cell>,
-        val selectedIndices: List<Int>
-    ) {
-        val input: String get() = selectedIndices.map { cells[it].char }.joinToString("")
-    }
-
     companion object {
         const val TIMER_DURATION_SECONDS = 60
         const val RANDOM_LETTER_COUNT = 3
@@ -38,8 +23,8 @@ class WordGameViewModel : ViewModel() {
         "VIOLON", "RAPIDE", "BLOQUE", "MOUTON", "GATEAU"
     )
 
-    private val _phase = MutableStateFlow(Phase.PLAYING)
-    val phase: StateFlow<Phase> = _phase.asStateFlow()
+    private val _phase = MutableStateFlow(WordGamePhase.PLAYING)
+    val phase: StateFlow<WordGamePhase> = _phase.asStateFlow()
 
     // _hintUsed must be declared before _grid — buildGrid() resets it during initialization
     private val _hintUsed = MutableStateFlow(false)
@@ -108,7 +93,7 @@ class WordGameViewModel : ViewModel() {
         timerJob?.cancel()
         _score.value = 0
         _timer.value = TIMER_DURATION_SECONDS
-        _phase.value = Phase.PLAYING
+        _phase.value = WordGamePhase.PLAYING
         _grid.value = buildGrid(wordList.random())
         launchTimer()
     }
@@ -121,7 +106,7 @@ class WordGameViewModel : ViewModel() {
                 _timer.value--
             }
             _bestScore.value = maxOf(_bestScore.value, _score.value)
-            _phase.value = Phase.GAME_OVER
+            _phase.value = WordGamePhase.GAME_OVER
         }
     }
 
