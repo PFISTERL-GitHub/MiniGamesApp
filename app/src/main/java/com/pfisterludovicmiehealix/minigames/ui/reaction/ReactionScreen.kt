@@ -22,9 +22,11 @@ import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
 @Composable
 fun ReactionScreen(
+    playerName: String,
     onBackClick: () -> Unit,
     viewModel: ReactionViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) { viewModel.startGame(playerName) }
     val state by viewModel.uiState.collectAsState()
 
     Column(
@@ -118,7 +120,7 @@ fun ReactionScreen(
                 GamePhase.IDLE -> CircleActionButton(
                     label   = "Démarrer",
                     color   = AppBlue,
-                    onClick = { viewModel.startGame() }
+                    onClick = { viewModel.startGame(playerName) }
                 )
 
                 // Bouton circulaire Stop

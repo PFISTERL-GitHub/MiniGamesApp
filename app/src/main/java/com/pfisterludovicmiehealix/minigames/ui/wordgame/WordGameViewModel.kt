@@ -1,7 +1,11 @@
 package com.pfisterludovicmiehealix.minigames.ui.wordgame
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.pfisterludovicmiehealix.minigames.data.AppDatabase
+import com.pfisterludovicmiehealix.minigames.data.Score
+import com.pfisterludovicmiehealix.minigames.data.ScoreRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class WordGameViewModel : ViewModel() {
+class WordGameViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         const val TIMER_DURATION_SECONDS = 60
@@ -110,6 +114,14 @@ class WordGameViewModel : ViewModel() {
             }
             _bestScore.value = maxOf(_bestScore.value, _score.value)
             _phase.value = WordGamePhase.GAME_OVER
+        }
+    }
+
+    private fun saveScore() {
+        viewModelScope.launch {
+            repository.insertScore(
+                Score(playerName = playerName, gameName = "Mot Caché", score = _score.value)
+            )
         }
     }
 
