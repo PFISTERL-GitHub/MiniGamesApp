@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pfisterludovicmiehealix.minigames.GameName
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 import com.pfisterludovicmiehealix.minigames.ui.theme.MiniGamesAppTheme
 
@@ -35,7 +36,7 @@ fun WordGameScreen(
     val bestScore by viewModel.bestScore.collectAsState()
 
     when (phase) {
-        WordGameViewModel.Phase.PLAYING -> PlayingScreen(
+        WordGamePhase.PLAYING -> PlayingScreen(
             timer       = timer,
             score       = score,
             grid        = grid,
@@ -47,7 +48,7 @@ fun WordGameScreen(
             onHint      = viewModel::useHint,
             onBackClick = onBackClick
         )
-        WordGameViewModel.Phase.GAME_OVER -> GameOverScreen(
+        WordGamePhase.GAME_OVER -> GameOverScreen(
             score     = score,
             bestScore = bestScore,
             onReplay  = viewModel::reset,
@@ -60,7 +61,7 @@ fun WordGameScreen(
 private fun PlayingScreen(
     timer: Int,
     score: Int,
-    grid: WordGameViewModel.WordGrid,
+    grid: WordGrid,
     hintUsed: Boolean,
     onErase: () -> Unit,
     onCellClick: (Int) -> Unit,
@@ -77,7 +78,7 @@ private fun PlayingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        GameHeader(title = "Mot Caché", timer = timer, score = score)
+        GameHeader(title = GameName.WORD, timer = timer, score = score)
         WordHintCard(letterCount = grid.word.length)
         HintButton(hintUsed = hintUsed, onHint = onHint)
         InputZone(input = grid.input, onErase = onErase)
@@ -190,7 +191,7 @@ private fun InputZone(input: String, onErase: () -> Unit) {
 }
 
 @Composable
-private fun LetterGrid(cells: List<WordGameViewModel.Cell>, isFull: Boolean, onCellClick: (Int) -> Unit) {
+private fun LetterGrid(cells: List<Cell>, isFull: Boolean, onCellClick: (Int) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)

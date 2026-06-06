@@ -15,21 +15,6 @@ import kotlinx.coroutines.launch
 
 class WordGameViewModel(application: Application) : AndroidViewModel(application) {
 
-    enum class Phase { PLAYING, GAME_OVER }
-
-    data class Cell(
-        val char: Char,
-        val isSelected: Boolean = false
-    )
-
-    data class WordGrid(
-        val word: String,
-        val cells: List<Cell>,
-        val selectedIndices: List<Int>
-    ) {
-        val input: String get() = selectedIndices.map { cells[it].char }.joinToString("")
-    }
-
     companion object {
         const val TIMER_DURATION_SECONDS = 60
         const val RANDOM_LETTER_COUNT = 3
@@ -42,37 +27,28 @@ class WordGameViewModel(application: Application) : AndroidViewModel(application
         "VIOLON", "RAPIDE", "BLOQUE", "MOUTON", "GATEAU"
     )
 
-    private val repository = ScoreRepository(AppDatabase.getDatabase(application).scoreDao())
-    private var playerName = ""
+    private val _phase = MutableStateFlow(WordGamePhase.PLAYING)
+    val phase: StateFlow<WordGamePhase> = _phase.asStateFlow()
 
-    // _phase is mutable internally; phase is the read-only public view
-    private val _phase = MutableStateFlow(Phase.PLAYING)
-    val phase: StateFlow<Phase> = _phase.asStateFlow()
-
-    // _hintUsed must be declared before _grid — buildGrid() resets it during initialization
     private val _hintUsed = MutableStateFlow(false)
     val hintUsed: StateFlow<Boolean> = _hintUsed.asStateFlow()
 
-    // _bestScore is mutable internally; bestScore is the read-only public view
     private val _bestScore = MutableStateFlow(0)
     val bestScore: StateFlow<Int> = _bestScore.asStateFlow()
 
-    // _grid is mutable internally; grid is the read-only public view
     private val _grid = MutableStateFlow(buildGrid(wordList.random()))
     val grid: StateFlow<WordGrid> = _grid.asStateFlow()
 
-    // _score is mutable internally; score is the read-only public view
     private val _score = MutableStateFlow(0)
     val score: StateFlow<Int> = _score.asStateFlow()
 
-    // _timer is mutable internally; timer is the read-only public view
     private val _timer = MutableStateFlow(TIMER_DURATION_SECONDS)
     val timer: StateFlow<Int> = _timer.asStateFlow()
 
     private var timerJob: Job? = null
 
-    fun startGame(playerName: String) {
-        this.playerName = playerName
+    fun startGame() {
+        _hintUsed.value = false
         _timer.value = TIMER_DURATION_SECONDS
         _grid.value = buildGrid(wordList.random())
         launchTimer()
@@ -110,18 +86,21 @@ class WordGameViewModel(application: Application) : AndroidViewModel(application
 
     fun validate() {
         if (_grid.value.input == _grid.value.word) _score.value++
+        _hintUsed.value = false
         _grid.value = buildGrid(wordList.random())
     }
 
     fun pass() {
+        _hintUsed.value = false
         _grid.value = buildGrid(wordList.random())
     }
 
     fun reset() {
         timerJob?.cancel()
+        _hintUsed.value = false
         _score.value = 0
         _timer.value = TIMER_DURATION_SECONDS
-        _phase.value = Phase.PLAYING
+        _phase.value = WordGamePhase.PLAYING
         _grid.value = buildGrid(wordList.random())
         launchTimer()
     }
@@ -134,8 +113,7 @@ class WordGameViewModel(application: Application) : AndroidViewModel(application
                 _timer.value--
             }
             _bestScore.value = maxOf(_bestScore.value, _score.value)
-            saveScore()
-            _phase.value = Phase.GAME_OVER
+            _phase.value = WordGamePhase.GAME_OVER
         }
     }
 
@@ -148,7 +126,6 @@ class WordGameViewModel(application: Application) : AndroidViewModel(application
     }
 
     private fun buildGrid(word: String): WordGrid {
-        _hintUsed.value = false
         val cells = (word.map { Cell(it) } + List(RANDOM_LETTER_COUNT) { Cell(('A'..'Z').random()) }).shuffled()
         return WordGrid(word = word, cells = cells, selectedIndices = emptyList())
     }

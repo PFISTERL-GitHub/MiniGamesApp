@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pfisterludovicmiehealix.minigames.GameName
 import com.pfisterludovicmiehealix.minigames.ui.theme.*
 
 @Composable
@@ -43,7 +44,7 @@ fun ReactionScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text       = "Jeu de Réaction",
+                text       = GameName.REACTION,
                 color      = AppWhite,
                 fontSize   = 22.sp,
                 fontWeight = FontWeight.Bold
@@ -95,12 +96,12 @@ fun ReactionScreen(
             if (state.phase == GamePhase.RESULT) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text       = "Écart : ${state.gap.formatMs()}",
+                    text       = "Écart : ${state.gap!!.formatMs()}",
                     color      = AppGrey,
                     fontSize   = 16.sp
                 )
                 Text(
-                    text       = feedbackMessage(state.gap),
+                    text       = feedbackMessage(state.gap!!),
                     color      = AppWhite,
                     fontSize   = 20.sp,
                     fontWeight = FontWeight.Bold,
